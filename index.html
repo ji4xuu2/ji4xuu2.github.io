@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Sederhana-ku</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; }
+        .post { border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+        .post h2 { margin-top: 0; }
+        .post img { max-width: 100%; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <h1>Blog Sederhana dari Cockpit CMS</h1>
+    <p>Data ini ditarik langsung dari <code>https://cockokin.my.id/</code></p>
+
+    <hr>
+
+    <div id="blog-posts-container">
+        <p>Lagi ngambil data, tunggu bentar...</p>
+    </div>
+
+
+    <script>
+        // --- KONFIGURASI PENTING ---
+
+        // 1. GANTI_INI: Masukkan URL API Cockpit-mu.
+        //    (Ini adalah nama "Collection" yang kamu buat di Cockpit)
+        const API_URL = 'https://cockokin.my.id/content/collection/item/Blogg'; 
+
+        // 2. GANTI_INI: Masukkan API Token yang kamu dapat dari Cockpit.
+        const API_TOKEN = '68f993e439358bbfdb05e4d0'; 
+        
+        // --- Selesai Konfigurasi ---
+
+
+        // Ini adalah "wadah" di HTML kita
+        const container = document.getElementById('blog-posts-container');
+
+        // Fungsi untuk mengambil data dari API
+        async function fetchPosts() {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'GET',
+                    headers: {
+                        // Kirim token-nya di header
+                        'Cockpit-Token': API_TOKEN,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                // Kalau servernya error (misal token salah atau CORS)
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}. Cek lagi CORS & API Token kamu.`);
+                }
+
+                // Ubah data JSON jadi object
+                const posts = await response.json();
+
+                // Kosongkan tulisan "Lagi ngambil data..."
+                container.innerHTML = '';
+
+                // Kalau nggak ada postingan
+                if (posts.length === 0) {
+                    container.innerHTML = '<p>Yah, belum ada postingan nih.</p>';
+                    return;
+                }
+
+                // Loop (ulangi) untuk setiap postingan yang didapat
+                posts.forEach(post => {
+                    
+                    // 3. GANTI_INI (JIKA PERLU):
+                    //    Sesuaikan nama 'post.judul' dan 'post.isi_artikel' 
+                    //    dengan nama "Field" yang kamu buat di Cockpit.
+                    const postTitle = post.judul || 'Tanpa Judul';
+                    const postContent = post.isi_artikel || 'Tidak ada konten.';
+                    
+                    // Buat HTML baru untuk setiap post
+                    const postElement = document.createElement('div');
+                    postElement.className = 'post';
+                    postElement.innerHTML = `
+                        <h2>${postTitle}</h2>
+                        <div>${postContent}</div>
+                    `;
+                    
+                    // Masukkan HTML itu ke dalam wadah
+                    container.appendChild(postElement);
+                });
+
+            } catch (error) {
+                // Tampilkan error di halaman web biar gampang di-debug
+                container.innerHTML = `<p style="color: red;"><strong>Error:</strong> ${error.message}</p>`;
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        // Panggil fungsinya!
+        fetchPosts();
+
+    </script>
+
+</body>
+</html>
